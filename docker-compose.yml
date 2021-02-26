@@ -1,0 +1,71 @@
+version: '3.1'
+services:
+  alerta_mom1:
+    restart: always
+    container_name: mom1
+    image: alerta/alerta-web
+    depends_on:
+      - alerta_db_mom1
+    volumes:
+      - ./mom1_alertad.conf:/app/alertad.conf
+      - ./mom1_config.json:/usr/share/nginx/html/config.json
+    environment:
+      - ADMIN_USERS=alertaadmin
+      - ADMIN_PASSWORD=super-secret
+      - ADMIN_KEY=demo-key
+    ports:
+      - 9001:8080
+    networks:
+      alertanet:
+        aliases:
+          - mom1.local.alerta.io
+
+  alerta_mom2:
+    restart: always
+    container_name: mom2
+    image: alerta/alerta-web
+    depends_on:
+      - alerta_db_mom2
+    volumes:
+      - ./mom2_alertad.conf:/app/alertad.conf
+      - ./mom2_config.json:/usr/share/nginx/html/config.json
+    environment:
+      - ADMIN_USERS=alertaadmin
+      - ADMIN_PASSWORD=super-secret
+      - ADMIN_KEY=demo-key
+    ports:
+      - 9002:8080
+    networks:
+      alertanet:
+        aliases:
+          - mom2.local.alerta.io
+
+  alerta_db_mom1:
+    restart: always
+    container_name: mom1db
+    image: postgres
+    volumes:
+      - ./pgdata1:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: monitoring
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+     alertanet:
+
+  alerta_db_mom2:
+    restart: always
+    container_name: mom2db
+    image: postgres
+    volumes:
+      - ./pgdata2:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: monitoring
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      alertanet:
+
+networks:
+  alertanet:
+    driver: bridge
