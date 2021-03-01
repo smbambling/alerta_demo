@@ -1,51 +1,53 @@
+---
 version: '3.1'
-
 services:
-  mom1:
+  alerta_mom1:
     restart: always
     container_name: mom1
     image: alerta/alerta-web
-    volumes:
-      - $PWD/alertad-mom1.conf:/app/alertad.conf
-    ports:
-      - 9001:8080
     depends_on:
-      - db1
+      - alerta_db_mom1
+    volumes:
+      - ./mom1_alertad.conf:/app/alertad.conf
+      - ./mom1_config.json:/usr/share/nginx/html/config.json
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db2:5432/monitoring
-      - AUTH_REQUIRED=True
       - ADMIN_USERS=alertaadmin
       - ADMIN_PASSWORD=super-secret
-      - ADMIN_KEY=demo-key  # assigned to first user in ADMIN_USERS
+      - ADMIN_KEY=demo-key
+    ports:
+      - 9001:8080
     networks:
-      alerta:
+      alertanet:
         aliases:
           - mom1.local.alerta.io
+    extra_hosts:
+      - "mom2.local.alerta.io:127.0.0.1"
 
-  mom2:
+  alerta_mom2:
     restart: always
     container_name: mom2
     image: alerta/alerta-web
-    volumes:
-      - $PWD/alertad-mom2.conf:/app/alertad.conf
-    ports:
-      - 9002:8080
     depends_on:
-      - db2
+      - alerta_db_mom2
+    volumes:
+      - ./mom2_alertad.conf:/app/alertad.conf
+      - ./mom2_config.json:/usr/share/nginx/html/config.json
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db1:5432/monitoring
-      - AUTH_REQUIRED=True
       - ADMIN_USERS=alertaadmin
       - ADMIN_PASSWORD=super-secret
-      - ADMIN_KEY=demo-key  # assigned to first user in ADMIN_USERS
+      - ADMIN_KEY=demo-key
+    ports:
+      - 9002:8080
     networks:
-      alerta:
+      alertanet:
         aliases:
           - mom2.local.alerta.io
+    extra_hosts:
+      - "mom1.local.alerta.io:127.0.0.1"
 
-  db1:
+  alerta_db_mom1:
     restart: always
-    container_name: db1
+    container_name: mom1db
     image: postgres
     volumes:
       - ./pgdata1:/var/lib/postgresql/data
@@ -54,11 +56,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      alerta:
+      alertanet:
 
-  db2:
+  alerta_db_mom2:
     restart: always
-    container_name: db2
+    container_name: mom2db
     image: postgres
     volumes:
       - ./pgdata2:/var/lib/postgresql/data
@@ -67,7 +69,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      alerta:
+      alertanet:
 
 networks:
-  alerta:
+  alertanet:
+    driver: bridge

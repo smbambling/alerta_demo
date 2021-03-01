@@ -2,11 +2,10 @@ version: '3.1'
 
 services:
   mom1:
-    restart: always
-    container_name: mom1
     image: alerta/alerta-web
     volumes:
       - $PWD/alertad-mom1.conf:/app/alertad.conf
+      - $PWD/logging.conf:/app/logging.conf
     ports:
       - 9001:8080
     depends_on:
@@ -14,20 +13,19 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db2:5432/monitoring
       - AUTH_REQUIRED=True
-      - ADMIN_USERS=alertaadmin
-      - ADMIN_PASSWORD=super-secret
+      - ADMIN_USERS=admin@alerta.io,devops@alerta.io
       - ADMIN_KEY=demo-key  # assigned to first user in ADMIN_USERS
     networks:
-      alerta:
+      net:
         aliases:
           - mom1.local.alerta.io
+    restart: always
 
   mom2:
-    restart: always
-    container_name: mom2
     image: alerta/alerta-web
     volumes:
       - $PWD/alertad-mom2.conf:/app/alertad.conf
+      - $PWD/logging.conf:/app/logging.conf
     ports:
       - 9002:8080
     depends_on:
@@ -35,13 +33,13 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db1:5432/monitoring
       - AUTH_REQUIRED=True
-      - ADMIN_USERS=alertaadmin
-      - ADMIN_PASSWORD=super-secret
+      - ADMIN_USERS=admin@alerta.io,devops@alerta.io
       - ADMIN_KEY=demo-key  # assigned to first user in ADMIN_USERS
     networks:
-      alerta:
+      net:
         aliases:
           - mom2.local.alerta.io
+    restart: always
 
   db1:
     restart: always
@@ -54,7 +52,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      alerta:
+      net:
 
   db2:
     restart: always
@@ -67,7 +65,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      alerta:
+      net:
 
 networks:
-  alerta:
+  net:
